@@ -7,6 +7,8 @@ U = TypeVar("U")
 
 
 class Reader(Generic[U, TA]):
+    __slots__ = "func"
+
     func: Callable[[U], TA]
 
     def __init__(self, func: Callable[[U], TA]):
@@ -43,12 +45,3 @@ class Reader(Generic[U, TA]):
             return func(x).run(env)
 
         return Reader(new_action)
-
-
-if __name__ == "__main__":
-
-    def do_thing(func: Callable[..., None]):
-        func("Successfully used the reader Monad")
-
-    a = Reader(do_thing)
-    a.run(print)

@@ -1,11 +1,24 @@
-from __future__ import annotations
-from typing import Callable, Any, Generic, TypeVar
+import typing
 
-T = TypeVar("T")
-U = TypeVar("U")
+T = typing.TypeVar("T")
+U = typing.TypeVar("U")
 
 
-class Ok(Generic[T]):
+class Result(typing.Protocol, typing.Generic[T, U]):
+    def __init__(self, value: T):
+        ...
+
+    def bind(self, func: typing.Callable[[T], "Result[T, U]"]) -> "Result[T, U]":
+        ...
+
+    def map(self, func: typing.Callable[[T], U]) -> "Result[T, U]":
+        ...
+
+    def get(self) -> T:
+        ...
+
+
+class Ok(Result[T, U]):
     __match_args__ = ("value",)
     __slots__ = "value"
 
@@ -19,10 +32,10 @@ class Ok(Generic[T]):
         else:
             self.value = value
 
-    def bind(self, func: Callable[[Any], Result[T, U]]) -> Result[T, U]:
+    def bind(self, func: typing.Callable[[T], Result[T, U]]) -> Result[T, U]:
         return func(self.value)
 
-    def map(self, func: Callable[[T], Any]) -> Ok[T]:
+    def map(self, func: typing.Callable[[T], U]) -> Result[T, U]:
         return Ok(func(self.value))
 
     def get(self) -> T:
@@ -35,7 +48,7 @@ class Ok(Generic[T]):
         return f"{self.value}"
 
 
-class Err(Generic[U]):
+class Err(Result[T, U]):
     __match_args__ = ("value",)
     __slots__ = "value"
 
@@ -47,10 +60,10 @@ class Err(Generic[U]):
         else:
             self.value = value
 
-    def bind(self, _: Callable[[Any], Result]) -> Err[U]:
+    def bind(self, _: typing.Callable[..., Result[T, U]]) -> Result[T, U]:
         return self
 
-    def map(self, _: Callable[[Any], Any]) -> Err[U]:
+    def map(self, _: typing.Callable[..., U]) -> Result[T, U]:
         return self
 
     def get(self) -> U:
@@ -61,6 +74,3 @@ class Err(Generic[U]):
 
     def __str__(self):
         return f"{self.value}"
-
-
-Result = Ok[T] | Err[U]
