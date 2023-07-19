@@ -5,21 +5,21 @@ TB = typing.TypeVar("TB")
 U = typing.TypeVar("U")
 
 
-class Result(typing.Protocol, typing.Generic[TA, U]):
+class ResultT(typing.Protocol, typing.Generic[TA, U]):
     def __init__(self, value: TA):
         ...
 
-    def bind(self, func: typing.Callable[[TA], "Result[TB, U]"]) -> "Result[TB, U]":
+    def bind(self, func: typing.Callable[[TA], "ResultT[TB, U]"]) -> "ResultT[TB, U]":
         ...
 
-    def map(self, func: typing.Callable[[TA], TB]) -> "Result[TB, U]":
+    def map(self, func: typing.Callable[[TA], TB]) -> "ResultT[TB, U]":
         ...
 
     def get(self) -> TA:
         ...
 
 
-class Ok(Result[TA, U]):
+class Ok(ResultT[TA, U]):
     __match_args__ = ("value",)
     __slots__ = "value"
 
@@ -33,10 +33,10 @@ class Ok(Result[TA, U]):
         else:
             self.value = value
 
-    def bind(self, func: typing.Callable[[TA], Result[TB, U]]) -> Result[TB, U]:
+    def bind(self, func: typing.Callable[[TA], ResultT[TB, U]]) -> ResultT[TB, U]:
         return func(self.value)
 
-    def map(self, func: typing.Callable[[TA], TB]) -> Result[TB, U]:
+    def map(self, func: typing.Callable[[TA], TB]) -> ResultT[TB, U]:
         return Ok(func(self.value))
 
     def get(self) -> TA:
@@ -49,7 +49,7 @@ class Ok(Result[TA, U]):
         return f"{self.value}"
 
 
-class Err(Result[TA, U]):
+class Err(ResultT[TA, U]):
     __match_args__ = ("value",)
     __slots__ = "value"
 
@@ -61,10 +61,10 @@ class Err(Result[TA, U]):
         else:
             self.value = value
 
-    def bind(self, _: typing.Callable[..., Result[TA, U]]) -> Result[TA, U]:
+    def bind(self, _: typing.Callable[..., ResultT[TA, U]]) -> ResultT[TA, U]:
         return self
 
-    def map(self, _: typing.Callable[..., TA]) -> Result[TA, U]:
+    def map(self, _: typing.Callable[..., TA]) -> ResultT[TA, U]:
         return self
 
     def get(self) -> U:
@@ -75,3 +75,6 @@ class Err(Result[TA, U]):
 
     def __str__(self):
         return f"{self.value}"
+
+
+Result = Ok[TA, U] | Err[TA, U]
