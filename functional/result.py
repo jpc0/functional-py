@@ -18,6 +18,9 @@ class ResultT(typing.Protocol, typing.Generic[TA, U]):
     def get(self) -> TA:
         ...
 
+    def apply(self, func: "ResultT[typing.Callable[[TA], TB], U]") -> "ResultT[TB, U]":
+        ...
+
 
 class Ok(ResultT[TA, U]):
     __match_args__ = ("value",)
@@ -41,6 +44,9 @@ class Ok(ResultT[TA, U]):
 
     def get(self) -> TA:
         return self.value
+
+    def apply(self, func: "ResultT[typing.Callable[[TA], TB], U]") -> "ResultT[TB, U]":
+        return Ok(func.get()(self.value))
 
     def __repr__(self):
         return f"{self.value}"
@@ -69,6 +75,9 @@ class Err(ResultT[TA, U]):
 
     def get(self) -> U:
         return self.value
+
+    def apply(self, _: "ResultT[typing.Callable[..., TA], U]") -> "ResultT[TA, U]":
+        return self
 
     def __repr__(self):
         return f"{self.value}"
