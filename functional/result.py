@@ -1,30 +1,31 @@
 import typing
 
-T = typing.TypeVar("T")
+TA = typing.TypeVar("TA")
+TB = typing.TypeVar("TB")
 U = typing.TypeVar("U")
 
 
-class Result(typing.Protocol, typing.Generic[T, U]):
-    def __init__(self, value: T):
+class Result(typing.Protocol, typing.Generic[TA, U]):
+    def __init__(self, value: TA):
         ...
 
-    def bind(self, func: typing.Callable[[T], "Result[T, U]"]) -> "Result[T, U]":
+    def bind(self, func: typing.Callable[[TA], "Result[TB, U]"]) -> "Result[TB, U]":
         ...
 
-    def map(self, func: typing.Callable[[T], U]) -> "Result[T, U]":
+    def map(self, func: typing.Callable[[TA], TB]) -> "Result[TB, U]":
         ...
 
-    def get(self) -> T:
+    def get(self) -> TA:
         ...
 
 
-class Ok(Result[T, U]):
+class Ok(Result[TA, U]):
     __match_args__ = ("value",)
     __slots__ = "value"
 
-    value: T
+    value: TA
 
-    def __init__(self, value: T):
+    def __init__(self, value: TA):
         if isinstance(value, Ok):
             self.value = value.value
         elif isinstance(value, Err):
@@ -32,13 +33,13 @@ class Ok(Result[T, U]):
         else:
             self.value = value
 
-    def bind(self, func: typing.Callable[[T], Result[T, U]]) -> Result[T, U]:
+    def bind(self, func: typing.Callable[[TA], Result[TB, U]]) -> Result[TB, U]:
         return func(self.value)
 
-    def map(self, func: typing.Callable[[T], U]) -> Result[T, U]:
+    def map(self, func: typing.Callable[[TA], TB]) -> Result[TB, U]:
         return Ok(func(self.value))
 
-    def get(self) -> T:
+    def get(self) -> TA:
         return self.value
 
     def __repr__(self):
@@ -48,7 +49,7 @@ class Ok(Result[T, U]):
         return f"{self.value}"
 
 
-class Err(Result[T, U]):
+class Err(Result[TA, U]):
     __match_args__ = ("value",)
     __slots__ = "value"
 
@@ -60,10 +61,10 @@ class Err(Result[T, U]):
         else:
             self.value = value
 
-    def bind(self, _: typing.Callable[..., Result[T, U]]) -> Result[T, U]:
+    def bind(self, _: typing.Callable[..., Result[TA, U]]) -> Result[TA, U]:
         return self
 
-    def map(self, _: typing.Callable[..., U]) -> Result[T, U]:
+    def map(self, _: typing.Callable[..., TA]) -> Result[TA, U]:
         return self
 
     def get(self) -> U:

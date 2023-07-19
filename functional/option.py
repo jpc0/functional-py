@@ -1,55 +1,56 @@
 import typing
 
-T = typing.TypeVar("T")
+TA = typing.TypeVar("TA")
+TB = typing.TypeVar("TB")
 U = typing.TypeVar("U")
 
 
-class Option(typing.Generic[T]):
+class Option(typing.Generic[TA]):
     __match_args__ = ("value",)
     __slots__ = "value"
 
-    value: T
+    value: TA
 
-    def __init__(self, value: T = None):
+    def __init__(self, value: TA = None):
         self.value = value
 
-    def bind(self, func: typing.Callable[[T], "Option[U]"]) -> "Option[U]":
+    def bind(self, func: typing.Callable[[TA], "Option[TB]"]) -> "Option[TB]":
         return func(self.value)
 
-    def map(self, func: typing.Callable[[T], U]) -> "Option[U]":
+    def map(self, func: typing.Callable[[TA], TB]) -> "Option[TB]":
         return Some(func(self.value))
 
-    def get(self) -> T:
+    def get(self) -> TA:
         return self.value
 
 
-class Some(Option[T]):
+class Some(Option[TA]):
     __match_args__ = ("value",)
     __slots__ = "value"
 
-    value: T
+    value: TA
 
-    def __init__(self, value: T = None):
+    def __init__(self, value: TA = None):
         self.value = value
 
-    def bind(self, func: typing.Callable[[T], Option[U]]) -> Option[U]:
+    def bind(self, func: typing.Callable[[TA], Option[TB]]) -> Option[TB]:
         return func(self.value)
 
-    def map(self, func: typing.Callable[[T], U]) -> Option[U]:
+    def map(self, func: typing.Callable[[TA], TB]) -> Option[TB]:
         return Some(func(self.value))
 
-    def get(self) -> T:
+    def get(self) -> TA:
         return self.value
 
 
-class Nothing(Option[T]):
+class Nothing(Option[TA]):
     def __init__(self):
         pass
 
-    def bind(self, _: typing.Callable[..., Option[T]]) -> Option[T]:
+    def bind(self, _: typing.Callable[..., Option[TA]]) -> Option[TA]:
         return self
 
-    def map(self, _: typing.Callable[..., T]) -> Option[T]:
+    def map(self, _: typing.Callable[..., TA]) -> Option[TA]:
         return self
 
     def get(self) -> typing.NoReturn:
